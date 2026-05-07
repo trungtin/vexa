@@ -7,6 +7,7 @@ import {
   googleWaitingRoomIndicators,
   googleRejectionIndicators
 } from "./selectors";
+import { clickGoogleMeetGeminiConsentJoinNow } from "./geminiConsent";
 
 // Function to check if bot has been rejected from the meeting
 export async function checkForGoogleRejection(page: Page): Promise<boolean> {
@@ -158,6 +159,10 @@ export async function waitForGoogleMeetingAdmission(
       const effectiveTimeout = () => timeout + getEscalationExtensionMs();
 
       while (Date.now() - startTime < effectiveTimeout()) {
+        // Host denial can leave stale waiting-room text in the DOM. Check the
+        // terminal rejection state before treating the page as still waiting.
+        await throwIfGoogleAdmissionRejected(page, "waiting-room polling");
+        await clickGoogleMeetGeminiConsentJoinNow(page);
         // Check if we're still in waiting room using visibility
         const stillWaiting = await checkForWaitingRoomIndicators(page);
 
@@ -211,6 +216,8 @@ export async function waitForGoogleMeetingAdmission(
       let unknownStateDuration2 = 0;
       const effectiveTimeout2 = () => timeout + getEscalationExtensionMs();
       while (Date.now() - startTime < effectiveTimeout2()) {
+        await clickGoogleMeetGeminiConsentJoinNow(page);
+
         // Rejection check first
         const isRejected = await checkForGoogleRejection(page);
         if (isRejected) {
@@ -261,6 +268,8 @@ export async function waitForGoogleMeetingAdmission(
         const checkInterval = 2000;
         const startTime2 = Date.now();
         while (Date.now() - startTime2 < timeout) {
+          await throwIfGoogleAdmissionRejected(page, "late waiting-room polling");
+          await clickGoogleMeetGeminiConsentJoinNow(page);
           const stillWaiting = await checkForWaitingRoomIndicators(page);
           if (!stillWaiting) {
             const isRejected2 = await checkForGoogleRejection(page);
