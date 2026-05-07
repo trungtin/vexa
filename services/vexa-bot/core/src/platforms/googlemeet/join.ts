@@ -7,6 +7,7 @@ import {
   googleMicrophoneButtonSelectors,
   googleCameraButtonSelectors
 } from "./selectors";
+import { waitAndClickGoogleMeetGeminiConsentJoinNow } from "./geminiConsent";
 
 export async function joinGoogleMeeting(
   page: Page,
@@ -77,9 +78,11 @@ export async function joinGoogleMeeting(
       if (joinButton.type === 'join_now') {
         await joinButton.el!.click();
         log("Bot joined Google Meet as authenticated user (Join now).");
+        await waitAndClickGoogleMeetGeminiConsentJoinNow(page);
       } else if (joinButton.type === 'switch_here') {
         await joinButton.el!.click();
         log("Bot joined Google Meet as authenticated user (Switch here — same account already in call).");
+        await waitAndClickGoogleMeetGeminiConsentJoinNow(page);
       } else {
         // Cookies didn't work — fall back to anonymous join
         log("WARNING: Authenticated mode but 'Ask to join' found instead of 'Join now'. Cookies may not be loaded.");
@@ -99,6 +102,7 @@ export async function joinGoogleMeeting(
 
         await joinButton.el!.click();
         log(`Bot joined Google Meet via fallback (Ask to join).`);
+        await waitAndClickGoogleMeetGeminiConsentJoinNow(page);
       }
     } catch (e) {
       // No button found — take diagnostic screenshot and fail
@@ -140,6 +144,7 @@ export async function joinGoogleMeeting(
     await page.waitForSelector(joinSelector, { timeout: 60000 });
     await page.click(joinSelector);
     log(`${botName} joined the Google Meet Meeting.`);
+    await waitAndClickGoogleMeetGeminiConsentJoinNow(page);
 
     await page.screenshot({ path: '/app/storage/screenshots/bot-checkpoint-0-after-ask-to-join.png', fullPage: true });
     log("📸 Screenshot taken: After clicking 'Ask to join'");
