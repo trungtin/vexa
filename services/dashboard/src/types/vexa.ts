@@ -460,8 +460,15 @@ export interface RecordingMediaFile {
   storage_backend: "minio" | "s3" | "local";
   file_size_bytes: number | null;
   duration_seconds: number | null;
+  finalized_by?: string | null;
+  is_final?: boolean;
   metadata?: Record<string, unknown>;
   created_at: string;
+}
+
+export interface RecordingPlaybackUrl {
+  audio: string | null;
+  video: string | null;
 }
 
 export interface RecordingData {
@@ -474,6 +481,7 @@ export interface RecordingData {
   created_at: string;
   completed_at: string | null;
   media_files: RecordingMediaFile[];
+  playback_url?: RecordingPlaybackUrl | null;
 }
 
 // ==========================================
